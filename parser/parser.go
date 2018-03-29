@@ -1,20 +1,24 @@
 package parser
 
 import (
+	"fmt"
+
+	"github.com/butlermatt/monlox/ast"
 	"github.com/butlermatt/monlox/lexer"
 	"github.com/butlermatt/monlox/token"
-	"github.com/butlermatt/monlox/ast"
 )
 
 type Parser struct {
 	l *lexer.Lexer
 
-	curToken token.Token
+	curToken  token.Token
 	peekToken token.Token
+
+	errors []string
 }
 
 func New(l *lexer.Lexer) *Parser {
-	p := &Parser{l: l}
+	p := &Parser{l: l, errors: []string{}}
 
 	// Read two tokens, to populate both cur and peek.
 	p.nextToken()
@@ -28,9 +32,13 @@ func (p *Parser) nextToken() {
 	p.peekToken = p.l.NextToken()
 }
 
+func (p *Parser) Errors() []string {
+	return p.errors
+}
+
 func (p *Parser) ParseProgram() *ast.Program {
 	program := &ast.Program{}
-	program.Statements  = []ast.Statement{}
+	program.Statements = []ast.Statement{}
 
 	for p.curToken.Type != token.EOF {
 		stmt := p.parseStatement()
@@ -57,8 +65,13 @@ func (p *Parser) expectPeek(t token.TokenType) bool {
 		p.nextToken()
 		return true
 	}
-
+	p.peekError(t)
 	return false
+}
+
+func (p *Parser) peekError(t token.TokenType) {
+	msg := fmt.Sprintf("on line %d: expected next token to be %s, got %s instead", p.peekToken.Line, t, p.peekToken.Type)
+	p.errors = append(p.errors, msg)
 }
 
 func (p *Parser) parseStatement() ast.Statement {
