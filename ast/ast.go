@@ -134,3 +134,17 @@ func (es *ExpressionStatement) String() string {
 	}
 	return ""
 }
+
+// NumberLiteral is an AST node representing a number literal. Stored as a float32.
+type NumberLiteral struct {
+	Token token.Token
+	Value float32
+}
+
+func (nl *NumberLiteral) expressionNode() {}
+
+// TokenLiteral returns a string representation of the token associated with this node.
+func (nl *NumberLiteral) TokenLiteral() string { return nl.Token.Literal }
+
+// String returns a string representation of the Number Literal.
+func (nl *NumberLiteral) String() string { return nl.Token.Literal }

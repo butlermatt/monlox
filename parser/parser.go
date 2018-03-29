@@ -2,31 +2,64 @@ package parser
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/butlermatt/monlox/ast"
 	"github.com/butlermatt/monlox/lexer"
 	"github.com/butlermatt/monlox/token"
 )
 
+const (
+	_ int = iota
+	lowest
+	equals  // ==
+	ltgt    // < or >
+	sum     // + or -
+	product // * or /
+	prefix  // -X or !X
+	call    // myFunction()
+)
+
+type (
+	prefixParseFn func() ast.Expression
+	infixParseFn  func(ast.Expression) ast.Expression
+)
+
 // Parser tries to parse the provided tokens with the language rules, and catches errors.
 type Parser struct {
-	l *lexer.Lexer
+	l      *lexer.Lexer
+	errors []string
 
 	curToken  token.Token
 	peekToken token.Token
 
-	errors []string
+	prefixFns map[token.TokenType]prefixParseFn
+	infixFns  map[token.TokenType]infixParseFn
 }
 
 // New returns a new Parser populated with tokens from the specified Lexer.
 func New(l *lexer.Lexer) *Parser {
 	p := &Parser{l: l, errors: []string{}}
 
+	p.prefixFns = make(map[token.TokenType]prefixParseFn)
+	p.registerPrefix(token.IDENT, p.parseIdentifier)
+	p.registerPrefix(token.NUM, p.parseNumberLiteral)
+
+	p.infixFns = make(map[token.TokenType]infixParseFn)
+
 	// Read two tokens, to populate both cur and peek.
 	p.nextToken()
 	p.nextToken()
 
 	return p
+}
+
+func (p *Parser) registerPrefix(tokenType token.TokenType, fn prefixParseFn) {
+	p.prefixFns[tokenType] = fn
+}
+
+func (p *Parser) registerInfix(tokenType token.TokenType, fn infixParseFn) {
+	p.infixFns[tokenType] = fn
 }
 
 func (p *Parser) nextToken() {
@@ -85,7 +118,7 @@ func (p *Parser) parseStatement() ast.Statement {
 	case token.RETURN:
 		return p.parseReturnStatement()
 	default:
-		return nil
+		return p.parseExpressionStatement()
 	}
 }
 
@@ -128,4 +161,44 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	}
 
 	return stmt
+}
+
+func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
+	stmt := &ast.ExpressionStatement{Token: p.curToken}
+
+	stmt.Expression = p.parseExpression(lowest)
+
+	if p.peekTokenIs(token.SEMICOLON) {
+		p.nextToken()
+	}
+
+	return stmt
+}
+
+func (p *Parser) parseExpression(precedence int) ast.Expression {
+	prefix := p.prefixFns[p.curToken.Type]
+	if prefix == nil {
+		return nil
+	}
+	leftExp := prefix()
+
+	return leftExp
+}
+
+func (p *Parser) parseIdentifier() ast.Expression {
+	return &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+}
+
+func (p *Parser) parseNumberLiteral() ast.Expression {
+	lit := &ast.NumberLiteral{Token: p.curToken}
+
+	value, err := strconv.ParseFloat(p.curToken.Literal, 32)
+	if err != nil {
+		msg := fmt.Sprintf("on line %d: could not parse %q as number", p.curToken.Line, p.curToken.Literal)
+		p.errors = append(p.errors, msg)
+	}
+
+	lit.Value = float32(value)
+
+	return lit
 }
