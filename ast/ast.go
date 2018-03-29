@@ -148,3 +148,27 @@ func (nl *NumberLiteral) TokenLiteral() string { return nl.Token.Literal }
 
 // String returns a string representation of the Number Literal.
 func (nl *NumberLiteral) String() string { return nl.Token.Literal }
+
+// PrefixExpression is an AST node representing a prefix expression such as -5 or !x
+type PrefixExpression struct {
+	Token    token.Token
+	Operator string
+	Right    Expression
+}
+
+func (pe *PrefixExpression) expressionNode() {}
+
+// TokenLiteral returns the string literal of the associated token.
+func (pe *PrefixExpression) TokenLiteral() string { return pe.Token.Literal }
+
+// String returns a string representation of the prefix expression.
+func (pe *PrefixExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteByte('(')
+	out.WriteString(pe.Operator)
+	out.WriteString(pe.Right.String())
+	out.WriteByte(')')
+
+	return out.String()
+}

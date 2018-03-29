@@ -1,9 +1,11 @@
 package parser
 
 import (
+	"fmt"
+	"testing"
+
 	"github.com/butlermatt/monlox/ast"
 	"github.com/butlermatt/monlox/lexer"
-	"testing"
 )
 
 func TestLetStatements(t *testing.T) {
@@ -145,7 +147,7 @@ func TestNumberLiteralExpression(t *testing.T) {
 	checkParseErrors(t, p)
 
 	if len(program.Statements) != 1 {
-		t.Fatalf("program does not have right number of statements. expected=%d, got=%d", 1, len(program.Statements))
+		t.Fatalf("program does not have correct number of statements. expected=%d, got=%d", 1, len(program.Statements))
 	}
 
 	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
@@ -165,4 +167,63 @@ func TestNumberLiteralExpression(t *testing.T) {
 	if literal.TokenLiteral() != "5" {
 		t.Errorf("literal.TokenLiteral incorrect. expected=%q, got=%q", "5", literal.TokenLiteral())
 	}
+}
+
+func TestParsingPrefixExpressions(t *testing.T) {
+	prefixTests := []struct {
+		input string
+		oper  string
+		value float32
+	}{
+		{"!15", "!", 15},
+		{"-5.2", "-", 5.2},
+	}
+
+	for _, tt := range prefixTests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParseErrors(t, p)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program.Statements does not have correct number of statements. expected=%d, got=%d", 1, len(program.Statements))
+		}
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("program.Statement[0] is wrong type. expected=ast.ExpressionStatement, got=%T", program.Statements[0])
+		}
+
+		exp, ok := stmt.Expression.(*ast.PrefixExpression)
+		if !ok {
+			t.Fatalf("stmt is not correct type. expected=ast.PrefixExpression, got=%T", stmt.Expression)
+		}
+
+		if exp.Operator != tt.oper {
+			t.Fatalf("exp.Operator is incorrect. expected=%q, got=%q", tt.oper, exp.Operator)
+		}
+		if !testNumberLiteral(t, exp.Right, tt.value) {
+			return
+		}
+	}
+}
+
+func testNumberLiteral(t *testing.T, nl ast.Expression, value float32) bool {
+	num, ok := nl.(*ast.NumberLiteral)
+	if !ok {
+		t.Errorf("nl not correct type. expected=*ast.NumberLiteral, got=%T", nl)
+		return false
+	}
+
+	if num.Value != value {
+		t.Errorf("num.Value is incorrect. expected=%v, got=%v", value, num.Value)
+		return false
+	}
+
+	if num.TokenLiteral() != fmt.Sprintf("%v", value) {
+		t.Errorf("num.TokenLiteral incorrect. expected=%v, got=%q", value, num.TokenLiteral())
+		return false
+	}
+
+	return true
 }
