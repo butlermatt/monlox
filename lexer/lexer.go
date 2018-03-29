@@ -2,6 +2,7 @@ package lexer
 
 import "github.com/butlermatt/monlox/token"
 
+// Lexer iterates through the provided program to generate tokens.
 type Lexer struct {
 	input        string
 	position     int  // Current position in the input (points to current char)
@@ -26,6 +27,7 @@ func isAlphaNumeric(ch byte) bool {
 	return isAlpha(ch) || isDigit(ch)
 }
 
+// New returns a new Lexer populated with the specified input program.
 func New(input string) *Lexer {
 	l := &Lexer{input: input, line: 1}
 	l.readChar()
@@ -82,6 +84,7 @@ func (l *Lexer) peekChar() byte {
 	return l.input[l.readPosition]
 }
 
+// NextToken steps through the input to generate the next token
 func (l *Lexer) NextToken() token.Token {
 	var tok token.Token
 

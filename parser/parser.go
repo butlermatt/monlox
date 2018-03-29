@@ -8,6 +8,7 @@ import (
 	"github.com/butlermatt/monlox/token"
 )
 
+// Parser tries to parse the provided tokens with the language rules, and catches errors.
 type Parser struct {
 	l *lexer.Lexer
 
@@ -17,6 +18,7 @@ type Parser struct {
 	errors []string
 }
 
+// New returns a new Parser populated with tokens from the specified Lexer.
 func New(l *lexer.Lexer) *Parser {
 	p := &Parser{l: l, errors: []string{}}
 
@@ -32,10 +34,12 @@ func (p *Parser) nextToken() {
 	p.peekToken = p.l.NextToken()
 }
 
+// Errors returns a slice of errors generated when parsing the tokens.
 func (p *Parser) Errors() []string {
 	return p.errors
 }
 
+// ParseProgram steps through the tokens to compile the statements.
 func (p *Parser) ParseProgram() *ast.Program {
 	program := &ast.Program{}
 	program.Statements = []ast.Statement{}
