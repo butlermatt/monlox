@@ -130,9 +130,23 @@ func (l *Lexer) NextToken() token.Token {
 	case '*':
 		tok = token.New(token.ASTERISK, string(l.ch), l.line)
 	case '<':
-		tok = token.New(token.LT, string(l.ch), l.line)
+		if l.peekChar() == '=' {
+			ch := l.ch
+			l.readChar()
+			lit := string(ch) + string(l.ch)
+			tok = token.New(token.LT_EQ, lit, l.line)
+		} else {
+			tok = token.New(token.LT, string(l.ch), l.line)
+		}
 	case '>':
-		tok = token.New(token.GT, string(l.ch), l.line)
+		if l.peekChar() == '=' {
+			ch := l.ch
+			l.readChar()
+			lit := string(ch) + string(l.ch)
+			tok = token.New(token.GT_EQ, lit, l.line)
+		} else {
+			tok = token.New(token.GT, string(l.ch), l.line)
+		}
 	case 0:
 		tok = token.New(token.EOF, "", l.line)
 	default:
