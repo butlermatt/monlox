@@ -25,10 +25,8 @@ if (5 < 10) {
     return false;
 }
 
-10 == 10;
-10 != 9;
-10 <= 9;
-10 >= 9;
+10 == 10 or 10 != 9;
+10 <= 9 and 10 >= 9;
 `
 
 	tests := []struct {
@@ -113,21 +111,21 @@ if (5 < 10) {
 		{token.NUM, "10", 19},
 		{token.EQ_EQ, "==", 19},
 		{token.NUM, "10", 19},
+		{token.OR, "or", 19},
+		{token.NUM, "10", 19},
+		{token.NOT_EQ, "!=", 19},
+		{token.NUM, "9", 19},
 		{token.SEMICOLON, ";", 19},
 		{token.NUM, "10", 20},
-		{token.NOT_EQ, "!=", 20},
+		{token.LT_EQ, "<=", 20},
+		{token.NUM, "9", 20},
+		{token.AND, "and", 20},
+		{token.NUM, "10", 20},
+		{token.GT_EQ, ">=", 20},
 		{token.NUM, "9", 20},
 		{token.SEMICOLON, ";", 20},
-		{token.NUM, "10", 21},
-		{token.LT_EQ, "<=", 21},
-		{token.NUM, "9", 21},
-		{token.SEMICOLON, ";", 21},
-		{token.NUM, "10", 22},
-		{token.GT_EQ, ">=", 22},
-		{token.NUM, "9", 22},
-		{token.SEMICOLON, ";", 22},
 
-		{token.EOF, "", 23},
+		{token.EOF, "", 21},
 	}
 
 	l := New(input)
