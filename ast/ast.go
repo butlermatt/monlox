@@ -149,6 +149,20 @@ func (nl *NumberLiteral) TokenLiteral() string { return nl.Token.Literal }
 // String returns a string representation of the Number Literal.
 func (nl *NumberLiteral) String() string { return nl.Token.Literal }
 
+// Boolean is an AST node representing boolean literals.
+type Boolean struct {
+	Token token.Token
+	Value bool
+}
+
+func (b *Boolean) expressionNode() {}
+
+// TokenLiteral returns a string representation of the token associated with this node.
+func (b *Boolean) TokenLiteral() string { return b.Token.Literal }
+
+// String returns a string representation of the boolean literal.
+func (b *Boolean) String() string { return b.Token.Literal }
+
 // PrefixExpression is an AST node representing a prefix expression such as -5 or !x
 type PrefixExpression struct {
 	Token    token.Token
