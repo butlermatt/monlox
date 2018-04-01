@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	"github.com/butlermatt/monlox/token"
+	"strings"
 )
 
 // Node is a node within the AST tree.
@@ -241,7 +242,7 @@ func (ie *IfExpression) expressionNode() {}
 // TokenLiteral returns the string representation of this token.
 func (ie *IfExpression) TokenLiteral() string { return ie.Token.Literal }
 
-// String returns the string representation of this string.
+// String returns the string representation of this expression.
 func (ie *IfExpression) String() string {
 	var out bytes.Buffer
 
@@ -254,6 +255,35 @@ func (ie *IfExpression) String() string {
 		out.WriteString("else ")
 		out.WriteString(ie.Alternative.String())
 	}
+
+	return out.String()
+}
+
+type FunctionLiteral struct {
+	Token      token.Token // the 'fn' token.
+	Parameters []*Identifier
+	Body       *BlockStatement
+}
+
+func (fl *FunctionLiteral) expressionNode() {}
+
+// TokenLiteral returns the string representation of this token.
+func (fl *FunctionLiteral) TokenLiteral() string { return fl.Token.Literal }
+
+// String returns the string representation of this expression
+func (fl *FunctionLiteral) String() string {
+	var out bytes.Buffer
+
+	params := []string{}
+	for _, p := range fl.Parameters {
+		params = append(params, p.String())
+	}
+
+	out.WriteString(fl.TokenLiteral())
+	out.WriteByte('(')
+	out.WriteString(strings.Join(params, ", "))
+	out.WriteString(") ")
+	out.WriteString(fl.Body.String())
 
 	return out.String()
 }

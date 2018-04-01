@@ -515,3 +515,73 @@ func TestIfElseExpression(t *testing.T) {
 		return
 	}
 }
+
+func TestFunctionLiteralParsing(t *testing.T) {
+	input := `fn(x, y) { x + y; }`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParseErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain correct number of statements. expected=%d, got=%d", 1, len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is wrong type. expcted=*ast.ExpressionStatement, got=%T", program.Statements[0])
+	}
+
+	fun, ok := stmt.Expression.(*ast.FunctionLiteral)
+	if !ok {
+		t.Fatalf("stmt.Expression is wrong type. expected=*ast.FunctionLiteral, got=%T", stmt.Expression)
+	}
+
+	if len(fun.Parameters) != 2 {
+		t.Fatalf("function.Parameters does not contain correct number of paramets. expected=%d, got=%d", 2, len(fun.Parameters))
+	}
+
+	testLiteralExpression(t, fun.Parameters[0], "x")
+	testLiteralExpression(t, fun.Parameters[1], "y")
+
+	if len(fun.Body.Statements) != 1 {
+		t.Fatalf("function.Body contains incorrect number of statements. expected=%d, got=%d", 1, len(fun.Body.Statements))
+	}
+
+	bodyStmt, ok := fun.Body.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("function.Body statement is incorrec type. expected=*ast.ExpressionStatement, got=%T", fun.Body.Statements[0])
+	}
+
+	testInfixExpression(t, bodyStmt.Expression, "x", "+", "y")
+}
+
+func TestFunctionParameterParsing(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected []string
+	}{
+		{input: `fn() {};`, expected: []string{}},
+		{input: `fn(x) {};`, expected: []string{"x"}},
+		{input: `fn(x, y, z) {};`, expected: []string{"x", "y", "z"}},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParseErrors(t, p)
+
+		stmt := program.Statements[0].(*ast.ExpressionStatement)
+		function := stmt.Expression.(*ast.FunctionLiteral)
+
+		if len(function.Parameters) != len(tt.expected) {
+			t.Errorf("wrong number of parameters. expected=%d, got=%d", len(tt.expected), len(function.Parameters))
+		}
+
+		for i, ident := range tt.expected {
+			testLiteralExpression(t, function.Parameters[i], ident)
+		}
+	}
+}
