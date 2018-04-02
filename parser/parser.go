@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	_ int = iota
+	_ = iota
 	lowest
 	equals  // ==
 	ltgt    // < or >
@@ -36,6 +36,7 @@ var precedences = map[token.TokenType]int{
 	token.MINUS:    sum,
 	token.ASTERISK: product,
 	token.SLASH:    product,
+	token.LPAREN:   call,
 }
 
 // Parser tries to parse the provided tokens with the language rules, and catches errors.
@@ -76,6 +77,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.LT_EQ, p.parseInfixExpression)
 	p.registerInfix(token.GT, p.parseInfixExpression)
 	p.registerInfix(token.GT_EQ, p.parseInfixExpression)
+	p.registerInfix(token.LPAREN, p.parseCallExpression)
 
 	// Read two tokens, to populate both cur and peek.
 	p.nextToken()
@@ -377,7 +379,7 @@ func (p *Parser) parseFunctionLiteral() ast.Expression {
 }
 
 func (p *Parser) parseFunctionParameters() []*ast.Identifier {
-	idents := []*ast.Identifier{}
+	var idents []*ast.Identifier
 
 	if p.peekTokenIs(token.RPAREN) {
 		p.nextToken()
@@ -401,4 +403,34 @@ func (p *Parser) parseFunctionParameters() []*ast.Identifier {
 	}
 
 	return idents
+}
+
+func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
+	exp := &ast.CallExpression{Token: p.curToken, Function: function}
+	exp.Arguments = p.parseCallArguments()
+	return exp
+}
+
+func (p *Parser) parseCallArguments() []ast.Expression {
+	var args []ast.Expression
+
+	if p.peekTokenIs(token.RPAREN) {
+		p.nextToken()
+		return args
+	}
+
+	p.nextToken()
+	args = append(args, p.parseExpression(lowest))
+
+	for p.peekTokenIs(token.COMMA) {
+		p.nextToken()
+		p.nextToken()
+		args = append(args, p.parseExpression(lowest))
+	}
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	return args
 }
