@@ -1,10 +1,10 @@
 package main
 
 import (
-	"os/user"
 	"fmt"
-	"os"
 	"github.com/butlermatt/monlox/repl"
+	"os"
+	"os/user"
 )
 
 func main() {
@@ -16,5 +16,5 @@ func main() {
 	fmt.Printf("Hello %s! This is the Monlox programming language!\n", usr.Username)
 	fmt.Printf("Feel free to type in commands\n")
 	repl.Start(os.Stdin, os.Stdout)
-	fmt.Printf("Good Byte!")
+	fmt.Printf("Good Byte!\n")
 }
