@@ -24,6 +24,10 @@ func Eval(node ast.Node) object.Object {
 	case *ast.PrefixExpression:
 		right := Eval(node.Right)
 		return evalPrefixExpression(node.Operator, right)
+	case *ast.InfixExpression:
+		left := Eval(node.Left)
+		right := Eval(node.Right)
+		return evalInfixExpression(node.Operator, left, right)
 	}
 
 	return nil
@@ -72,4 +76,45 @@ func evalMinusPrefixOperatorExpression(right object.Object) object.Object {
 
 	value := right.(*object.Number).Value
 	return &object.Number{Value: -value}
+}
+
+func evalInfixExpression(operator string, left, right object.Object) object.Object {
+	if left.Type() == object.NUMBER && right.Type() == object.NUMBER {
+		return evalNumberInfixExpression(operator, left, right)
+	}
+
+	return Null
+}
+
+func evalNumberInfixExpression(operator string, left, right object.Object) object.Object {
+	leftVal := left.(*object.Number).Value
+	rightVal := right.(*object.Number).Value
+
+	var result float32
+	switch operator {
+	case "+":
+		result = leftVal + rightVal
+	case "-":
+		result = leftVal - rightVal
+	case "*":
+		result = leftVal * rightVal
+	case "/":
+		result = leftVal / rightVal
+	case "<":
+		return nativeBooltoObject(leftVal < rightVal)
+	case ">":
+		return nativeBooltoObject(leftVal > rightVal)
+	case "<=":
+		return nativeBooltoObject(leftVal <= rightVal)
+	case ">=":
+		return nativeBooltoObject(leftVal >= rightVal)
+	case "==":
+		return nativeBooltoObject(leftVal == rightVal)
+	case "!=":
+		return nativeBooltoObject(leftVal != rightVal)
+	default:
+		return Null
+	}
+
+	return &object.Number{Value: result}
 }
