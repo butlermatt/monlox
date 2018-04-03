@@ -15,6 +15,8 @@ func TestEvalNumberExpression(t *testing.T) {
 	}{
 		{"5", 5},
 		{"10.45", 10.45},
+		{"-5", -5},
+		{"-10.45", -10.45},
 	}
 
 	for _, tt := range tests {
