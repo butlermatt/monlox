@@ -2,12 +2,12 @@ package object
 
 import "fmt"
 
-type Type string
+type Type int
 
 const (
-	NUMBER  Type = "NUMBER"
-	BOOLEAN      = "BOOLEAN"
-	NULL         = "NULL"
+	NULL Type = iota
+	NUMBER
+	BOOLEAN
 )
 
 type Object interface {
@@ -31,5 +31,5 @@ func (b *Boolean) Inspect() string { return fmt.Sprintf("%v", b.Value) }
 
 type Null struct{}
 
-func (n *Null) Type() string    { return NULL }
+func (n *Null) Type() Type      { return NULL }
 func (n *Null) Inspect() string { return "null" }
