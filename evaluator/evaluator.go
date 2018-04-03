@@ -83,6 +83,17 @@ func evalInfixExpression(operator string, left, right object.Object) object.Obje
 		return evalNumberInfixExpression(operator, left, right)
 	}
 
+	switch operator {
+	case "==":
+		return nativeBooltoObject(left == right)
+	case "!=":
+		return nativeBooltoObject(left != right)
+	case "or":
+		return nativeBooltoObject((left == True) || (right == True))
+	case "and":
+		return nativeBooltoObject((left == True) && (right == True))
+	}
+
 	return Null
 }
 
