@@ -8,6 +8,7 @@ const (
 	NULL Type = iota
 	NUMBER
 	BOOLEAN
+	RETURN
 )
 
 type Object interface {
@@ -33,3 +34,10 @@ type Null struct{}
 
 func (n *Null) Type() Type      { return NULL }
 func (n *Null) Inspect() string { return "null" }
+
+type ReturnValue struct {
+	Value Object
+}
+
+func (rv *ReturnValue) Type() Type      { return RETURN }
+func (rv *ReturnValue) Inspect() string { return rv.Value.Inspect() }
