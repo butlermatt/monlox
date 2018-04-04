@@ -69,10 +69,6 @@ func TestEvalBooleanExpression(t *testing.T) {
 		{"true and false", false},
 		{"false and false", false},
 		{"false and true", false},
-		//{"1 != true", false},
-		//{"1 == true", true},
-		//{"1 or 2", true},
-		//{"1 and 2", true},
 	}
 
 	for _, tt := range tests {
@@ -141,6 +137,42 @@ func TestReturnStatements(t *testing.T) {
 	for _, tt := range tests {
 		evaluated := testEval(tt.input)
 		testNumberObject(t, evaluated, tt.expected)
+	}
+}
+
+func TestErrorHandling(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"5 + true;", "on line 1: type mismatch: NUMBER + BOOLEAN"},
+		{"5 + true; 5;", "on line 1: type mismatch: NUMBER + BOOLEAN"},
+		{"-true;", "on line 1: unknown operator: -BOOLEAN"},
+		{"true + false;", "on line 1: unknown operator: BOOLEAN + BOOLEAN"},
+		{"5; true + false; 5", "on line 1: unknown operator: BOOLEAN + BOOLEAN"},
+		{"if (10 > 1) { true + false; }", "on line 1: unknown operator: BOOLEAN + BOOLEAN"},
+		{"if (1 == true) { 10 }", "on line 1: type mismatch: NUMBER == BOOLEAN"},
+		{`
+if (10 > 1) {
+   if (10 > 1) { 
+     return true + false 
+   } 
+   return 1; 
+}`, "on line 4: unknown operator: BOOLEAN + BOOLEAN"},
+	}
+
+	for i, tt := range tests {
+		evaluated := testEval(tt.input)
+
+		errObj, ok := evaluated.(*object.Error)
+		if !ok {
+			t.Errorf("test %d: wrong type returned. expected=*object.Error, got=%T (%+v)", i+1, evaluated, evaluated)
+			continue
+		}
+
+		if errObj.Message != tt.expected {
+			t.Errorf("test %d: wrong error message. expected=%q, got=%q", i+1, tt.expected, errObj.Message)
+		}
 	}
 }
 
