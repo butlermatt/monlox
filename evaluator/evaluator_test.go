@@ -159,6 +159,7 @@ if (10 > 1) {
    } 
    return 1; 
 }`, "on line 4: unknown operator: BOOLEAN + BOOLEAN"},
+		{"foobar", "on line 1: identifier not found: foobar"},
 	}
 
 	for i, tt := range tests {
@@ -173,6 +174,23 @@ if (10 > 1) {
 		if errObj.Message != tt.expected {
 			t.Errorf("test %d: wrong error message. expected=%q, got=%q", i+1, tt.expected, errObj.Message)
 		}
+	}
+}
+
+func TestLetStatements(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected float32
+	}{
+		{"let a = 5; a;", 5},
+		{"let a = 5 * 5; a;", 25},
+		{"let a = 5; let b = a; b;", 5},
+		{"let a = 5; let b = a; let c = a + b + 5; c;", 15},
+	}
+
+	for i, tt := range tests {
+		t.Logf("Running test %d", i)
+		testNumberObject(t, testEval(tt.input), tt.expected)
 	}
 }
 
@@ -217,6 +235,7 @@ func testEval(input string) object.Object {
 	l := lexer.New(input)
 	p := parser.New(l)
 	program := p.ParseProgram()
+	env := object.NewEnvironment()
 
-	return Eval(program)
+	return Eval(program, env)
 }

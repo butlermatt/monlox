@@ -7,6 +7,7 @@ import (
 
 	"github.com/butlermatt/monlox/evaluator"
 	"github.com/butlermatt/monlox/lexer"
+	"github.com/butlermatt/monlox/object"
 	"github.com/butlermatt/monlox/parser"
 )
 
@@ -15,6 +16,7 @@ const prompt = ">> "
 // Start will begin a very simple REPL which reads from in and outputs response to out.
 func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
+	env := object.NewEnvironment()
 
 	for {
 		fmt.Fprintf(out, prompt)
@@ -33,7 +35,7 @@ func Start(in io.Reader, out io.Writer) {
 			continue
 		}
 
-		evaluated := evaluator.Eval(program)
+		evaluated := evaluator.Eval(program, env)
 		if evaluated != nil {
 			io.WriteString(out, evaluated.Inspect())
 			io.WriteString(out, "\n")
