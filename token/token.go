@@ -17,8 +17,10 @@ const (
 	EOF     = "EOF"
 
 	// Identifiers + literals
-	IDENT = "IDENT" // add, foobar, x, y, ...
-	NUM   = "NUM"   // 123 1343235
+	IDENT    = "IDENT"               // add, foobar, x, y, ...
+	NUM      = "NUM"                 // 123 1343235
+	STRING   = "STRING"              // Strings like "hello World"
+	UTSTRING = "UNTERMINATED STRING" // Unterminated String
 
 	// Operators
 	EQ       = "="

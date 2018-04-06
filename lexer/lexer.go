@@ -68,6 +68,22 @@ func (l *Lexer) readNumber() string {
 	return l.input[position:l.position]
 }
 
+func (l *Lexer) readString() (string, bool) {
+	pos := l.position + 1
+	ok := true
+	for {
+		l.readChar()
+		if l.ch == '"' {
+			break
+		}
+		if l.ch == 0 {
+			ok = false
+			break
+		}
+	}
+	return l.input[pos:l.position], ok
+}
+
 func (l *Lexer) skipWhitespace() {
 	for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
 		if l.ch == '\n' {
@@ -146,6 +162,13 @@ func (l *Lexer) NextToken() token.Token {
 			tok = token.New(token.GT_EQ, lit, l.line)
 		} else {
 			tok = token.New(token.GT, string(l.ch), l.line)
+		}
+	case '"':
+		start := l.line
+		if str, ok := l.readString(); ok {
+			tok = token.New(token.STRING, str, start)
+		} else {
+			tok = token.New(token.UTSTRING, str, start)
 		}
 	case 0:
 		tok = token.New(token.EOF, "", l.line)

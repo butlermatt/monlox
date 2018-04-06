@@ -68,6 +68,8 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.LPAREN, p.parseGroupedExpression)
 	p.registerPrefix(token.IF, p.parseIfExpression)
 	p.registerPrefix(token.FUNCTION, p.parseFunctionLiteral)
+	p.registerPrefix(token.STRING, p.parseStringLiteral)
+	p.registerPrefix(token.UTSTRING, p.parseUnterminatedString)
 
 	p.infixFns = make(map[token.TokenType]infixParseFn)
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
@@ -231,6 +233,12 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 func (p *Parser) noPrefixFnError(line int, t token.TokenType) {
 	msg := fmt.Sprintf("on line %d: no prefix parse function for %s found", line, t)
 	p.errors = append(p.errors, msg)
+}
+
+func (p *Parser) parseUnterminatedString() ast.Expression {
+	msg := fmt.Sprintf("on line %d: unterminated string", p.curToken.Line)
+	p.errors = append(p.errors, msg)
+	return nil
 }
 
 func (p *Parser) parseIdentifier() ast.Expression {
@@ -433,4 +441,8 @@ func (p *Parser) parseCallArguments() []ast.Expression {
 	}
 
 	return args
+}
+
+func (p *Parser) parseStringLiteral() ast.Expression {
+	return &ast.StringLiteral{Token: p.curToken, Value: p.curToken.Literal}
 }

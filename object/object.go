@@ -17,6 +17,8 @@ func (t Type) String() string {
 		return "NUMBER"
 	case BOOLEAN:
 		return "BOOLEAN"
+	case STRING:
+		return "STRING"
 	case RETURN:
 		return "RETURN"
 	case FUNCTION:
@@ -32,6 +34,7 @@ const (
 	NULL Type = iota
 	NUMBER
 	BOOLEAN
+	STRING
 	RETURN
 	FUNCTION
 	ERROR
@@ -99,3 +102,10 @@ func (f *Function) Inspect() string {
 
 	return out.String()
 }
+
+type String struct {
+	Value string
+}
+
+func (s *String) Type() Type      { return STRING }
+func (s *String) Inspect() string { return s.Value }

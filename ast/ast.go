@@ -296,7 +296,7 @@ type CallExpression struct {
 
 func (ce *CallExpression) expressionNode() {}
 
-// Tokenliteral returns the string representation of this token.
+// TokenLiteral returns the string representation of this token.
 func (ce *CallExpression) TokenLiteral() string { return ce.Token.Literal }
 
 // String returns a string representation of this call expression.
@@ -315,3 +315,16 @@ func (ce *CallExpression) String() string {
 
 	return out.String()
 }
+
+type StringLiteral struct {
+	Token token.Token
+	Value string
+}
+
+func (sl *StringLiteral) expressionNode() {}
+
+// TokenLiteral returns a string representation of this token.
+func (sl *StringLiteral) TokenLiteral() string { return sl.Token.Literal }
+
+// String returns a string representation of this string literal
+func (sl *StringLiteral) String() string { return sl.Token.Literal }

@@ -625,3 +625,40 @@ func TestCallExpressionParsing(t *testing.T) {
 	testInfixExpression(t, exp.Arguments[1], 2, "*", 3)
 	testInfixExpression(t, exp.Arguments[2], 4, "+", 5)
 }
+
+func TestStringLiteralExpression(t *testing.T) {
+	input := `"hello world";`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParseErrors(t, p)
+
+	stmt := program.Statements[0].(*ast.ExpressionStatement)
+	literal, ok := stmt.Expression.(*ast.StringLiteral)
+	if !ok {
+		t.Fatalf("expression wrong type. expected=*ast.StringLiteral, got=%T, (%+[1]v)", stmt.Expression)
+	}
+
+	if literal.Value != "hello world" {
+		t.Errorf("literal value is wrong. expected=%q, got=%q", "hello world", literal.Value)
+	}
+}
+
+func TestUnterminatedString(t *testing.T) {
+	input := `"hello World`
+
+	l := lexer.New(input)
+	p := New(l)
+	p.ParseProgram()
+
+	errs := p.Errors()
+	if len(errs) != 1 {
+		t.Fatalf("incorrect number of errors. expected=%d, got=%d", 1, len(errs))
+	}
+
+	expected := "on line 1: unterminated string"
+	if errs[0] != expected {
+		t.Errorf("unexpected error message. expected=%q, got=%q", expected, errs[0])
+	}
+}

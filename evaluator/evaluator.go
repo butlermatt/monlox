@@ -32,6 +32,10 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return evalIfExpression(node, env)
 	case *ast.Identifier:
 		return evalIdentifier(node, env)
+	case *ast.FunctionLiteral:
+		return &object.Function{Parameters: node.Parameters, Body: node.Body, Env: env}
+	case *ast.StringLiteral:
+		return &object.String{Value: node.Value}
 	case *ast.ReturnStatement:
 		val := Eval(node.Value, env)
 		if isError(val) {
@@ -45,8 +49,6 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		}
 		env.Set(node.Name.Value, val)
 		return Null
-	case *ast.FunctionLiteral:
-		return &object.Function{Parameters: node.Parameters, Body: node.Body, Env: env}
 	case *ast.CallExpression:
 		function := Eval(node.Function, env)
 		if isError(function) {
@@ -60,7 +62,7 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return applyFunction(function, args, node.Token.Line)
 	}
 
-	return nil
+	return Null
 }
 
 func evalProgram(program *ast.Program, env *object.Environment) object.Object {
