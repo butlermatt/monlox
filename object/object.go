@@ -1,6 +1,11 @@
 package object
 
-import "fmt"
+import (
+	"bytes"
+	"fmt"
+	"github.com/butlermatt/monlox/ast"
+	"strings"
+)
 
 type Type int
 
@@ -14,6 +19,8 @@ func (t Type) String() string {
 		return "BOOLEAN"
 	case RETURN:
 		return "RETURN"
+	case FUNCTION:
+		return "FUNCTION"
 	case ERROR:
 		return "ERROR"
 	}
@@ -26,6 +33,7 @@ const (
 	NUMBER
 	BOOLEAN
 	RETURN
+	FUNCTION
 	ERROR
 )
 
@@ -67,3 +75,27 @@ type Error struct {
 
 func (e *Error) Type() Type      { return ERROR }
 func (e *Error) Inspect() string { return fmt.Sprintf("ERROR line %d: %s", e.Line, e.Message) }
+
+type Function struct {
+	Parameters []*ast.Identifier
+	Body       *ast.BlockStatement
+	Env        *Environment
+}
+
+func (f *Function) Type() Type { return FUNCTION }
+func (f *Function) Inspect() string {
+	var out bytes.Buffer
+
+	var params []string
+	for _, p := range f.Parameters {
+		params = append(params, p.String())
+	}
+
+	out.WriteString("fn(")
+	out.WriteString(strings.Join(params, ", "))
+	out.WriteString(") {\n")
+	out.WriteString(f.Body.String())
+	out.WriteString("\n}")
+
+	return out.String()
+}
