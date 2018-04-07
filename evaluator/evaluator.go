@@ -143,6 +143,10 @@ func evalInfixExpression(infix *ast.InfixExpression, env *object.Environment) ob
 		return evalNumberInfixExpression(infix, left, right)
 	}
 
+	if left.Type() == object.STRING && right.Type() == object.STRING {
+		return evalStringInfixExpression(infix, left, right)
+	}
+
 	if left.Type() != right.Type() {
 		return newError(infix.Token.Line, "type mismatch: %s %s %s", left.Type(), infix.Operator, right.Type())
 	}
@@ -192,6 +196,22 @@ func evalNumberInfixExpression(infix *ast.InfixExpression, left, right object.Ob
 	}
 
 	return &object.Number{Value: result}
+}
+
+func evalStringInfixExpression(infix *ast.InfixExpression, left, right object.Object) object.Object {
+	leftVal := left.(*object.String).Value
+	rightVal := right.(*object.String).Value
+
+	switch infix.Operator {
+	case "==":
+		return nativeBooltoObject(leftVal == rightVal)
+	case "!=":
+		return nativeBooltoObject(leftVal != rightVal)
+	case "+":
+		return &object.String{Value: leftVal + rightVal}
+	}
+
+	return newError(infix.Token.Line, "unknown operator: %s %s %s", left.Type(), infix.Operator, right.Type())
 }
 
 func evalIfExpression(ie *ast.IfExpression, env *object.Environment) object.Object {
