@@ -9,6 +9,8 @@ import (
 
 type Type int
 
+type BuiltinFunction func(line int, args ...Object) Object
+
 func (t Type) String() string {
 	switch t {
 	case NULL:
@@ -23,6 +25,8 @@ func (t Type) String() string {
 		return "RETURN"
 	case FUNCTION:
 		return "FUNCTION"
+	case BUILTIN:
+		return "BUILTIN"
 	case ERROR:
 		return "ERROR"
 	}
@@ -37,6 +41,7 @@ const (
 	STRING
 	RETURN
 	FUNCTION
+	BUILTIN
 	ERROR
 )
 
@@ -109,3 +114,10 @@ type String struct {
 
 func (s *String) Type() Type      { return STRING }
 func (s *String) Inspect() string { return s.Value }
+
+type Builtin struct {
+	Fn BuiltinFunction
+}
+
+func (b *Builtin) Type() Type      { return BUILTIN }
+func (b *Builtin) Inspect() string { return "builtin function" }

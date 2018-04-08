@@ -281,6 +281,37 @@ func TestStringConcatenation(t *testing.T) {
 	}
 }
 
+func TestBuiltinFunctions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{`len("")`, float32(0)},
+		{`len("four")`, float32(4)},
+		{`len("hello world")`, float32(11)},
+		{`len(1)`, "on line 1: argument to `len` not supported. got=NUMBER"},
+		{`len("one", "two")`, "on line 1: wrong number of arguments. expected=1, got=2"},
+	}
+
+	for i, tt := range tests {
+		evaluated := testEval(tt.input)
+
+		switch expected := tt.expected.(type) {
+		case float32:
+			testNumberObject(t, evaluated, float32(expected))
+		case string:
+			errObj, ok := evaluated.(*object.Error)
+			if !ok {
+				t.Errorf("test %d: object is unexpected type. expected=*object.Error, got=%T (%+[2]v", i, evaluated)
+				continue
+			}
+			if errObj.Message != expected {
+				t.Errorf("unexpected error message. expected=%q, got=%q", expected, errObj.Message)
+			}
+		}
+	}
+}
+
 func testNullObject(t *testing.T, obj object.Object) bool {
 	if obj != Null {
 		t.Errorf("object is not expected type. expected=Null, got=%T (%+v)", obj, obj)
