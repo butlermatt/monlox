@@ -29,6 +29,7 @@ if (5 < 10) {
 10 <= 9 and 10 >= 9;
 "foobar";
 "foo bar";
+[1, 2];
 `
 
 	tests := []struct {
@@ -130,8 +131,14 @@ if (5 < 10) {
 		{token.SEMICOLON, ";", 21},
 		{token.STRING, "foo bar", 22},
 		{token.SEMICOLON, ";", 22},
+		{token.LBRACKET, "[", 23},
+		{token.NUM, "1", 23},
+		{token.COMMA, ",", 23},
+		{token.NUM, "2", 23},
+		{token.RBRACKET, "]", 23},
+		{token.SEMICOLON, ";", 23},
 
-		{token.EOF, "", 23},
+		{token.EOF, "", 24},
 	}
 
 	l := New(input)
