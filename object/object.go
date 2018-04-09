@@ -21,6 +21,8 @@ func (t Type) String() string {
 		return "BOOLEAN"
 	case STRING:
 		return "STRING"
+	case ARRAY:
+		return "ARRAY"
 	case RETURN:
 		return "RETURN"
 	case FUNCTION:
@@ -39,6 +41,7 @@ const (
 	NUMBER
 	BOOLEAN
 	STRING
+	ARRAY
 	RETURN
 	FUNCTION
 	BUILTIN
@@ -121,3 +124,23 @@ type Builtin struct {
 
 func (b *Builtin) Type() Type      { return BUILTIN }
 func (b *Builtin) Inspect() string { return "builtin function" }
+
+type Array struct {
+	Elements []Object
+}
+
+func (a *Array) Type() Type { return ARRAY }
+func (a *Array) Inspect() string {
+	var out bytes.Buffer
+
+	var elements []string
+	for _, e := range a.Elements {
+		elements = append(elements, e.Inspect())
+	}
+
+	out.WriteByte('[')
+	out.WriteString(strings.Join(elements, ", "))
+	out.WriteByte(']')
+
+	return out.String()
+}
