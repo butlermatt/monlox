@@ -19,6 +19,7 @@ const (
 	product // * or /
 	prefix  // -X or !X
 	call    // myFunction()
+	index   // array[index]
 )
 
 type (
@@ -40,6 +41,7 @@ var precedences = map[token.TokenType]int{
 	token.ASTERISK: product,
 	token.SLASH:    product,
 	token.LPAREN:   call,
+	token.LBRACKET: index,
 }
 
 // Parser tries to parse the provided tokens with the language rules, and catches errors.
@@ -86,6 +88,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.GT, p.parseInfixExpression)
 	p.registerInfix(token.GT_EQ, p.parseInfixExpression)
 	p.registerInfix(token.LPAREN, p.parseCallExpression)
+	p.registerInfix(token.LBRACKET, p.parseIndexExpression)
 
 	// Read two tokens, to populate both cur and peek.
 	p.nextToken()
@@ -454,4 +457,17 @@ func (p *Parser) parseArrayLiteral() ast.Expression {
 	array.Elements = p.parseExpressionList(token.RBRACKET)
 
 	return array
+}
+
+func (p *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
+	ex := &ast.IndexExpression{Token: p.curToken, Left: left}
+
+	p.nextToken()
+	ex.Index = p.parseExpression(lowest)
+
+	if !p.expectPeek(token.RBRACKET) {
+		return nil
+	}
+
+	return ex
 }
