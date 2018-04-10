@@ -291,12 +291,27 @@ func TestBuiltinFunctions(t *testing.T) {
 		{`len("hello world")`, float32(11)},
 		{`len(1)`, "on line 1: argument to `len` not supported. got=NUMBER"},
 		{`len("one", "two")`, "on line 1: wrong number of arguments. expected=1, got=2"},
+		{`len([1, 2, 3])`, float32(3)},
+		{`len([])`, float32(0)},
+		{`first([1, 2, 3])`, float32(1)},
+		{`first([])`, nil},
+		{`first(1)`, "on line 1: argument to `first` must be ARRAY, got=NUMBER"},
+		{`last([1, 2, 3])`, float32(3)},
+		{`last([])`, nil},
+		{`last(1)`, "on line 1: argument to `last` must be ARRAY, got=NUMBER"},
+		{`rest([1, 2, 3])`, []float32{2, 3}},
+		{`rest([])`, nil},
+		{`push([], 1)`, []float32{1}},
+		{`push(1, 1)`, "on line 1: first argument to `push` must be ARRAY, got=NUMBER"},
+		//{`puts("hello", "world!")`, nil},
 	}
 
 	for i, tt := range tests {
 		evaluated := testEval(tt.input)
 
 		switch expected := tt.expected.(type) {
+		case nil:
+			testNullObject(t, evaluated)
 		case float32:
 			testNumberObject(t, evaluated, float32(expected))
 		case string:
@@ -307,6 +322,22 @@ func TestBuiltinFunctions(t *testing.T) {
 			}
 			if errObj.Message != expected {
 				t.Errorf("unexpected error message. expected=%q, got=%q", expected, errObj.Message)
+			}
+		case []int:
+			array, ok := evaluated.(*object.Array)
+			if !ok {
+				t.Errorf("obj not Array. got=%T (%+v)", evaluated, evaluated)
+				continue
+			}
+
+			if len(array.Elements) != len(expected) {
+				t.Errorf("wrong num of elements. want=%d, got=%d",
+					len(expected), len(array.Elements))
+				continue
+			}
+
+			for i, expectedElem := range expected {
+				testNumberObject(t, array.Elements[i], float32(expectedElem))
 			}
 		}
 	}
