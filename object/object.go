@@ -4,12 +4,36 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/butlermatt/monlox/ast"
+	"hash/fnv"
+	"math"
 	"strings"
 )
 
+type BuiltinFunction func(line int, args ...Object) Object
+
+type HashKey struct {
+	Type  Type
+	Value uint64
+}
+
+type Hashable interface {
+	HashKey() HashKey
+}
+
 type Type int
 
-type BuiltinFunction func(line int, args ...Object) Object
+const (
+	NULL Type = iota
+	NUMBER
+	BOOLEAN
+	STRING
+	ARRAY
+	RETURN
+	FUNCTION
+	BUILTIN
+	HASH
+	ERROR
+)
 
 func (t Type) String() string {
 	switch t {
@@ -29,24 +53,14 @@ func (t Type) String() string {
 		return "FUNCTION"
 	case BUILTIN:
 		return "BUILTIN"
+	case HASH:
+		return "HASH"
 	case ERROR:
 		return "ERROR"
 	}
 
 	return ""
 }
-
-const (
-	NULL Type = iota
-	NUMBER
-	BOOLEAN
-	STRING
-	ARRAY
-	RETURN
-	FUNCTION
-	BUILTIN
-	ERROR
-)
 
 type Object interface {
 	Type() Type
@@ -59,6 +73,9 @@ type Number struct {
 
 func (n *Number) Type() Type      { return NUMBER }
 func (n *Number) Inspect() string { return fmt.Sprintf("%v", n.Value) }
+func (n *Number) HashKey() HashKey {
+	return HashKey{Type: n.Type(), Value: math.Float64bits(float64(n.Value))}
+}
 
 type Boolean struct {
 	Value bool
@@ -66,6 +83,17 @@ type Boolean struct {
 
 func (b *Boolean) Type() Type      { return BOOLEAN }
 func (b *Boolean) Inspect() string { return fmt.Sprintf("%v", b.Value) }
+func (b *Boolean) HashKey() HashKey {
+	var value uint64
+
+	if b.Value {
+		value = 1
+	} else {
+		value = 0
+	}
+
+	return HashKey{Type: b.Type(), Value: value}
+}
 
 type Null struct{}
 
@@ -117,6 +145,12 @@ type String struct {
 
 func (s *String) Type() Type      { return STRING }
 func (s *String) Inspect() string { return s.Value }
+func (s *String) HashKey() HashKey {
+	h := fnv.New64a()
+	h.Write([]byte(s.Value))
+
+	return HashKey{Type: s.Type(), Value: h.Sum64()}
+}
 
 type Builtin struct {
 	Fn BuiltinFunction
@@ -141,6 +175,31 @@ func (a *Array) Inspect() string {
 	out.WriteByte('[')
 	out.WriteString(strings.Join(elements, ", "))
 	out.WriteByte(']')
+
+	return out.String()
+}
+
+type HashPair struct {
+	Key   Object
+	Value Object
+}
+
+type Hash struct {
+	Pairs map[HashKey]HashPair
+}
+
+func (h *Hash) Type() Type { return HASH }
+func (h *Hash) Inspect() string {
+	var out bytes.Buffer
+
+	var pairs []string
+	for _, pair := range h.Pairs {
+		pairs = append(pairs, fmt.Sprintf("%s: %s", pair.Key.Inspect(), pair.Value.Inspect()))
+	}
+
+	out.WriteByte('{')
+	out.WriteString(strings.Join(pairs, ", "))
+	out.WriteByte('}')
 
 	return out.String()
 }
