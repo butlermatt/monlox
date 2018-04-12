@@ -389,6 +389,47 @@ func TestArrayIndexExpressions(t *testing.T) {
 	}
 }
 
+func TestHashLiterals(t *testing.T) {
+	input := `let two = "two";
+{
+	"one": 10 - 9,
+	two: 1 + 1,
+	"thr" + "ee": 6 / 2,
+	4: 4,
+	true: 5,
+	false: 6
+}`
+
+	evaluated := testEval(input)
+	result, ok := evaluated.(*object.Hash)
+	if !ok {
+		t.Fatalf("eval returned wrong type. expected=*object.Hash, got=%T (%+[1]v)", evaluated)
+	}
+
+	expected := map[object.HashKey]float32{
+		(&object.String{Value: "one"}).HashKey():   1,
+		(&object.String{Value: "two"}).HashKey():   2,
+		(&object.String{Value: "three"}).HashKey(): 3,
+		(&object.Number{Value: 4}).HashKey():       4,
+		True.HashKey():                             5,
+		False.HashKey():                            6,
+	}
+
+	if len(result.Pairs) != len(expected) {
+		t.Fatalf("Hash has wrong number of elements. expected=%d, got=%d", len(expected), len(result.Pairs))
+	}
+
+	for exKey, exVal := range expected {
+		p, ok := result.Pairs[exKey]
+		if !ok {
+			t.Errorf("no pair for given key %q", exKey)
+		}
+
+		testNumberObject(t, p.Value, exVal)
+	}
+
+}
+
 func testNullObject(t *testing.T, obj object.Object) bool {
 	if obj != Null {
 		t.Errorf("object is not expected type. expected=Null, got=%T (%+v)", obj, obj)
