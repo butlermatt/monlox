@@ -304,7 +304,7 @@ func TestBuiltinFunctions(t *testing.T) {
 		{`rest([])`, nil},
 		{`push([], 1)`, []float32{1}},
 		{`push(1, 1)`, "on line 1: first argument to `push` must be ARRAY, got=NUMBER"},
-		//{`puts("hello", "world!")`, nil},
+		{`puts("hello", "world!")`, nil},
 	}
 
 	for i, tt := range tests {

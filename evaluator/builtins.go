@@ -1,6 +1,9 @@
 package evaluator
 
-import "github.com/butlermatt/monlox/object"
+import (
+	"fmt"
+	"github.com/butlermatt/monlox/object"
+)
 
 var builtins = map[string]*object.Builtin{
 	"len": {
@@ -93,6 +96,15 @@ var builtins = map[string]*object.Builtin{
 			newEls[length] = args[1]
 
 			return &object.Array{Elements: newEls}
+		},
+	},
+	"puts": {
+		Fn: func(line int, args ...object.Object) object.Object {
+			for _, arg := range args {
+				fmt.Println(arg.Inspect())
+			}
+
+			return Null
 		},
 	},
 }
