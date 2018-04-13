@@ -165,6 +165,7 @@ if (10 > 1) {
 }`, "on line 4: unknown operator: BOOLEAN + BOOLEAN"},
 		{"foobar", "on line 1: identifier not found: foobar"},
 		{`"Hello" - "World"`, "on line 1: unknown operator: STRING - STRING"},
+		{`{"name": "Monkey"}[fn(x) { x }];`, "on line 1: unusable as hash key: FUNCTION"},
 	}
 
 	for i, tt := range tests {
@@ -427,7 +428,31 @@ func TestHashLiterals(t *testing.T) {
 
 		testNumberObject(t, p.Value, exVal)
 	}
+}
 
+func TestHashIndexExpressions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{`{"foo": 5}["foo"]`, float32(5)},
+		{`{"foo": 5}["bar"]`, nil},
+		{`let key = "foo"; {"foo": 5}[key]`, float32(5)},
+		{`{}["foo"]`, nil},
+		{`{5: 5}[5]`, float32(5)},
+		{`{true: 5}[true]`, float32(5)},
+		{`{false: 5}[false]`, float32(5)},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		number, ok := tt.expected.(float32)
+		if ok {
+			testNumberObject(t, evaluated, number)
+		} else {
+			testNullObject(t, evaluated)
+		}
+	}
 }
 
 func testNullObject(t *testing.T, obj object.Object) bool {
